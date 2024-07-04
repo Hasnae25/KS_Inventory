@@ -24,6 +24,7 @@ unset($_SESSION['message']);
     <link rel="stylesheet" href="assets/vendors/css/vendor.bundle.base.css">
     <link rel="stylesheet" href="assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css">
     <!-- ------------------- -->
+     
 </head>
 <body>
     <div class="card">
@@ -84,39 +85,49 @@ unset($_SESSION['message']);
                 $stmt->fetch();
                 $stmt->close();
                 ?>
-                <form action="form_submit.php" method="post">
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="code" value="<?php echo $code; ?>">
-                    Are you sure you want to delete the following equipment?<br>
-                    Name: <?php echo $name; ?><br>
-                    Type: <?php echo $type; ?><br>
-                    Quantity: <?php echo $qte; ?><br>
-                    Affectation: <?php echo $aff; ?><br>
-                    Status: <?php echo $status; ?><br>
-                    <input type="submit" value="Delete">
-                </form>
+
             <?php elseif (isset($_GET['code'])): ?>
-                <?php
-                $code = $_GET['code'];
-                $stmt = $conn->prepare("SELECT `st-name`, `st-type`, `st-qte`, `st-affectation`, `st-status` FROM ks_storage WHERE `st-code` = ?");
-                $stmt->bind_param("s", $code);
-                $stmt->execute();
-                $stmt->bind_result($name, $type, $qte, $aff, $status);
-                $stmt->fetch();
-                $stmt->close();
-                ?>
-                <form action="form_submit.php" method="post">
-                    <input type="hidden" name="action" value="update">
-                    <input type="hidden" name="code" value="<?php echo $code; ?>">
-                    Name: <input type="text" name="name" value="<?php echo $name; ?>" required><br>
-                    Type: <input type="text" name="type" value="<?php echo $type; ?>" required><br>
-                    Quantity: <input type="number" name="qte" value="<?php echo $qte; ?>" required><br>
-                    Affectation: <input type="text" name="aff" value="<?php echo $aff; ?>" required><br>
-                    Status: <input type="text" name="status" value="<?php echo $status; ?>" required><br>
-                    <input type="submit" value="Update">
-                </form>
-            <?php endif; ?>
+    <?php
+    $code = $_GET['code'];
+    $stmt = $conn->prepare("SELECT `st-name`, `st-type`, `st-qte`, `st-affectation`, `st-status` FROM ks_storage WHERE `st-code` = ?");
+    $stmt->bind_param("s", $code);
+    $stmt->execute();
+    $stmt->bind_result($name, $type, $qte, $aff, $status);
+    $stmt->fetch();
+    $stmt->close();
+    ?>
+       <form id="codeForm">
+        <label for="code">Enter Code:</label>
+        <input type="text" id="code" name="code" required>
+        <button type="button" onclick="fetchDetails()">Fetch Details</button>
+    </form>
+    <form action="form_submit.php" method="post">
+        <input type="hidden" name="action" value="add">
+        <div class="form-group">
+            <label for="code">Code</label>
+            <input type="text" class="form-control" id="code" name="code" value="<?php echo htmlspecialchars($code); ?>" required>
         </div>
-    </div>
-</body>
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" class="form-control" id="name" name="name" value="<?php echo htmlspecialchars($name); ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="type">Type</label>
+            <input type="text" class="form-control" id="type" name="type" value="<?php echo htmlspecialchars($type); ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="qte">Quantity</label>
+            <input type="number" class="form-control" id="qte" name="qte" value="<?php echo htmlspecialchars($qte); ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="aff">Affectation</label>
+            <input type="text" class="form-control" id="aff" name="aff" value="<?php echo htmlspecialchars($aff); ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="status">Status</label>
+            <input type="text" class="form-control" id="status" name="status" value="<?php echo htmlspecialchars($status); ?>" required>
+        </div>
+        <button type="submit" class="btn btn-outline-primary btn-fw">Add Equipment</button>
+    </form>
+<?php endif; ?>
 </html>

@@ -24,6 +24,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" || isset($_GET['action'])) {
     $aff = $_POST['aff'] ?? null;
     $status = $_POST['status'] ?? null;
 
+   
+    try { 
     if ($action == 'add') {
         if (!empty($code) && !empty($name) && !empty($type) && !empty($qte) && !empty($aff) && !empty($status)) {
             // Check if the code already exists
@@ -35,19 +37,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" || isset($_GET['action'])) {
             $checkStmt->close();
 
             if ($count > 0) {
-                $_SESSION['message'] = "Error: Equipment code already exists!";
+                $response['message'] = "Error: Equipment code already exists!";
             } else {
                 $stmt = $conn->prepare("INSERT INTO ks_storage (`st-code`, `st-name`, `st-type`, `st-qte`, `st-affectation`, `st-status`) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->bind_param("ssssss", $code, $name, $type, $qte, $aff, $status);
                 if ($stmt->execute()) {
-                    $_SESSION['message'] = "Equipment added successfully.";
+                    $response['success'] = true;
+                    $response['message'] = "Equipment added successfully.";
                 } else {
-                    $_SESSION['message'] = "Error: " . $stmt->error;
+                    $response['message'] = "Error: " . $stmt->error;
                 }
                 $stmt->close();
             }
         } else {
-            $_SESSION['message'] = "All fields are required!";
+            $response['message'] = "All fields are required!";
         }
     } elseif ($action == 'update') {
         if (!empty($code)) {
@@ -64,35 +67,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" || isset($_GET['action'])) {
                     $stmt->bind_param("ssssss", $name, $type, $qte, $aff, $status, $code);
 
                     if ($stmt->execute()) {
-                        $_SESSION['message'] = "Equipment updated successfully.";
+                        $response['success'] = true;
+                        $response['message'] = "Equipment updated successfully.";
                     } else {
-                        $_SESSION['message'] = "Error: " . $stmt->error;
+                        $response['message'] = "Error: " . $stmt->error;
                     }
                     $stmt->close();
                 } else {
-                    $_SESSION['message'] = "All fields are required for updating a record!";
+                    $response['message'] = "All fields are required for updating a record!";
                 }
             } else {
-                $_SESSION['message'] = "Equipment code does not exist!";
+                $response['message'] = "Equipment code does not exist!";
             }
         } else {
-            $_SESSION['message'] = "Please enter a code to update equipment.";
+            $response['message'] = "Please enter a code to update equipment.";
         }
     } elseif ($action == 'delete') {
         if (!empty($code)) {
             $stmt = $conn->prepare("DELETE FROM ks_storage WHERE `st-code` = ?");
             $stmt->bind_param("s", $code);
             if ($stmt->execute()) {
-                $_SESSION['message'] = "Equipment deleted successfully.";
+                $response['success'] = true;
+                $response['message'] = "Equipment deleted successfully.";
             } else {
-                $_SESSION['message'] = "Error: " . $stmt->error;
+                $response['message'] = "Error: " . $stmt->error;
             }
             $stmt->close();
         } else {
-            $_SESSION['message'] = "Please enter a code to delete equipment.";
+            $response['message'] = "Please enter a code to delete equipment.";
         }
     }
-    header("Location: Storage.php");
+    
+} catch (Exception $e) {
+    $response['message'] = 'Exception: ' . $e->getMessage();
+}
+
+// If it's an AJAX request, return JSON response
+if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+    echo json_encode($response);
     exit();
 }
-?>
+
+// For normal form submissions, redirect and set session message
+$_SESSION['message'] = $response['message'];
+header("Location: Storage.php");
+exit();
+}

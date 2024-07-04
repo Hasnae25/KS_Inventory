@@ -194,17 +194,18 @@ if (isset($_SESSION['message'])) {
               </div>
               </div>
           </div>
-          <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+          <div id="deleteModal" class="modal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <h5 class="modal-title">Delete Equipment</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to delete the equipment with code: <span id="deleteCode"></span>?
+                <p>Please enter the code of the equipment you want to delete:</p>
+                <input type="text" id="deleteInput" class="form-control">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -213,6 +214,27 @@ if (isset($_SESSION['message'])) {
             </div>
         </div>
     </div>
+    <div id="updateModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Equipment</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Please enter the code of the equipment you want to update:</p>
+                <input type="text" id="updateInput" class="form-control">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="confirmUpdate">Update</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
           <!-- content-wrapper ends -->
           <!-- partial:../../partials/_footer.html -->
@@ -246,6 +268,7 @@ if (isset($_SESSION['message'])) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
     <script src="assets/jquery/jquery-ui.min.js"></script>
     <script>
+
         document.getElementById('add-button').addEventListener('click', function() {
             var xhr = new XMLHttpRequest();
             xhr.open("GET", "form.php?action=add", true);
@@ -258,52 +281,64 @@ if (isset($_SESSION['message'])) {
             xhr.send();
         });
 
-        document.getElementById('delete-button').addEventListener('click', function() {
-            var selectedCode = prompt("Please enter the code of the equipment you want to delete:");
-            if (selectedCode) {
-                document.getElementById('deleteCode').innerText = selectedCode;
-                $('#deleteModal').modal('show');
-            }
-        });
-
-        document.getElementById('confirmDelete').addEventListener('click', function() {
-            var selectedCode = document.getElementById('deleteCode').innerText;
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", "form_submit.php?action=delete&code=" + selectedCode, true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    // Parse response and handle any errors
-                    try {
-                        var response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            alert('Equipment deleted successfully.');
-                            location.reload();
-                        } else {
-                            alert('Error: ' + response.message);
-                        }
-                    } catch (e) {
-                        alert('Unexpected response: ' + xhr.responseText);
+       $(document).ready(function() {
+    // Delete button click
+    $('#delete-button').on('click', function() {
+        $('#deleteModal').modal('show');
+    });
+    $('#confirmDelete').on('click', function() {
+        var selectedCode = $('#deleteInput').val();
+        if (selectedCode) {
+            $.ajax({
+                url: 'form_submit.php',
+                type: 'GET',
+                data: { action: 'delete', code: selectedCode },
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert(response.message);
                     }
+                },
+                error: function(xhr, status, error) {
+                    alert('Request failed: ' + error);
                 }
-            }
-            xhr.send();
-            $('#deleteModal').modal('hide');
-        });
+            });
+        }
+    });
 
-        document.getElementById('update-button').addEventListener('click', function() {
-            var selectedCode = prompt("Please enter the code of the equipment you want to update:");
-            if (selectedCode) {
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", "form.php?code=" + selectedCode, true);
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        document.getElementById('form-content').innerHTML = xhr.responseText;
-                        document.getElementById('form-content').style.display = 'block';
+
+    $('#update-button').on('click', function() {
+        $('#updateModal').modal('show');
+    });
+
+// Confirm update button click
+   // Confirm update button click
+   $('#confirmUpdate').on('click', function() {
+        var selectedCode = $('#updateInput').val();
+        if (selectedCode) {
+            $.ajax({
+                url: 'form_submit.php',
+                type: 'GET',
+                data: { action: 'update', code: selectedCode },
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert(response.message);
                     }
+                },
+                error: function(xhr, status, error) {
+                    alert('Request failed: ' + error);
                 }
-                xhr.send();
-            }
-        });
-    </script>
+            });
+        }
+    });
+});
+        
+</script>
+
 </body>
 </html>
