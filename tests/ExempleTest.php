@@ -2,12 +2,10 @@
 
 use PHPUnit\Framework\TestCase;
 
-class SampleTest extends TestCase
+class ExampleTest extends TestCase
 {
-    public function testSample()
+    public function testExample()
     {
         $this->assertTrue(true);
     }
 }
-
-?>

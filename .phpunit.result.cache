@@ -1,1 +1,0 @@
-{"version":1,"defects":{"LoginTest::testSuccessfulLogin":4,"MinimalTest::testSessionStart":3},"times":{"SampleTest::testSample":0,"LoginTest::testSuccessfulLogin":0.067,"MinimalTest::testSessionStart":0.013}}
