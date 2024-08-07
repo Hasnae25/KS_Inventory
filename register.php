@@ -44,9 +44,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // If there are no validation errors, proceed with inserting user into database
     if (empty($errors)) {
-        /* Hash the password for security
+        // Hash the password for security
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        echo strlen($assword); */
 
         // Set default role ID for a user 
         $defaultRoleId = 2;
@@ -55,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $query = "INSERT INTO ks_user (Username, FirstName, LastName, Email, Password, roles_id) 
                   VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("sssssi", $username, $firstName, $lastName, $email, $password, $defaultRoleId);
+        $stmt->bind_param("sssssi", $username, $firstName, $lastName, $email, $hashedPassword, $defaultRoleId);
         
         if ($stmt->execute()) {
             // User inserted successfully, redirect to login page
@@ -63,7 +62,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         } else {
             echo "Error: " . $stmt->error;
-            echo "<br>Values: " . $username . ", " . $firstName . ", " . $lastName . ", " . $email . ", " . $password . ", " . $defaultRoleId;
         }
 
         $stmt->close();
@@ -77,92 +75,114 @@ mysqli_close($conn);
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>KsInventory</title>
-    <!-- plugins:css -->
-    <link rel="stylesheet" href="assets/vendors/feather/feather.css">
-    <link rel="stylesheet" href="assets/vendors/mdi/css/materialdesignicons.min.css">
-    <link rel="stylesheet" href="assets/vendors/ti-icons/css/themify-icons.css">
-    <link rel="stylesheet" href="assets/vendors/font-awesome/css/font-awesome.min.css">
-    <link rel="stylesheet" href="assets/vendors/typicons/typicons.css">
-    <link rel="stylesheet" href="assets/vendors/simple-line-icons/css/simple-line-icons.css">
-    <link rel="stylesheet" href="assets/vendors/css/vendor.bundle.base.css">
-    <link rel="stylesheet" href="assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css">
-    <!-- endinject -->
-    <!-- inject:css -->
-    <link rel="stylesheet" href="assets/css/style.css">
-    <!-- endinject -->
-    <link rel="shortcut icon" href="assets/images/kroschu1.png" />
-    <!-- Custom CSS for modern look -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
     <style>
         body {
             margin: 0;
             padding: 0;
+            font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #d7bbf5, #af92ea);
         }
-        .signup-container {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        .container {
+            display: flex;
+            width: 800px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .welcome {
+            flex: 1;
             padding: 40px;
-            width: 350px;
-            backdrop-filter: blur(10px);
-            text-align: center;
-            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.5);
         }
-        .signup-container img {
-            width: 80px;
+        .welcome img {
+            max-width: 100px;
+            max-height: 100px;
             margin-bottom: 20px;
         }
-        .signup-container h4 {
-            margin-bottom: 10px;
+        
+        .login img {
+            max-width: 150px; /* Adjust the size here */
+            max-height: 150px; /* Adjust the size here */
+            margin-bottom: 20px;
+        }
+        .welcome h2 {
+            margin: 0;
             font-size: 24px;
+            color: #6a1b9a;
         }
-        .signup-container .form-group {
-            margin-bottom: 15px;
-            text-align: left;
+        .welcome p {
+            margin: 10px 0 0;
+            color: #6a1b9a;
         }
-        .signup-container .form-control {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 5px;
-            color: white;
+        .login {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
         }
-        .signup-container .form-control::placeholder {
-            color: rgba(255, 255, 255, 0.7);
+        .login h2 {
+            margin: 0 0 20px;
+            font-size: 24px;
+            color: #333;
         }
-        .signup-container .btn {
-            background: #667eea;
-            border: none;
-            border-radius: 5px;
-            padding: 10px;
+        .login form {
             width: 100%;
-            color: white;
-            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .form-group input {
+            width: calc(100% - 30px);
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            background: #6a1b9a;
+            color: #fff;
+            font-size: 16px;
             cursor: pointer;
-            transition: background 0.3s ease;
         }
-        .signup-container .btn:hover {
-            background: #5568c8;
+        .btn:hover {
+            background: #4a148c;
         }
-        .signup-container .auth-link {
-            color: rgba(255, 255, 255, 0.7);
+        .links {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
         }
-        .signup-container .auth-link:hover {
-            color: white;
+        .links a {
+            color: #6a1b9a;
+            text-decoration: none;
         }
-        .signup-container .form-check-label {
-            color: rgba(255, 255, 255, 0.7);
-        }
-        .signup-container .text-primary {
-            color: #667eea;
+        .links a:hover {
+            text-decoration: underline;
         }
         .error {
             color: red;
@@ -172,66 +192,61 @@ mysqli_close($conn);
     </style>
 </head>
 <body>
-    <div class="signup-container">
-        <div class="brand-logo">
-            <img src="assets/images/logo.png" alt="logo">
+    <div class="container">
+        <div class="welcome">
+            <h2>Welcome to Kromberg&Schubert</h2>
+            
         </div>
-        <h4>New here?</h4>
-        <h6 class="fw-light">Signing up is easy. It only takes a few steps</h6>
-        <form class="pt-3" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" id="signupForm">
-            <div class="form-group">
-                <input type="text" class="form-control form-control-lg" id="Username" name="Username" placeholder="Username" required>
-            </div>
-            <div class="form-group">
-                <input type="text" class="form-control form-control-lg" id="FirstName" name="FirstName" placeholder="First Name" required>
-            </div>
-            <div class="form-group">
-                <input type="text" class="form-control form-control-lg" id="LastName" name="LastName" placeholder="Last Name" required>
-            </div>
-            <div class="form-group">
-                <input type="email" class="form-control form-control-lg" id="Email" name="Email" placeholder="Email" required>
-            </div>
-            <div class="form-group">
-                <input type="password" class="form-control form-control-lg" id="Password" name="Password" placeholder="Password" required>
-            </div>
-            <div class="form-group">
-                <input type="password" class="form-control form-control-lg" id="exampleInputConfirmPassword1" name="confirmPassword" placeholder="Confirm Password" required>
-            </div>
-            <div class="mb-4">
-                <div class="form-check">
-                    <label class="form-check-label text-muted">
-                        <input type="checkbox" class="form-check-input"> I agree to all Terms & Conditions 
-                    </label>
+        <div class="login">
+        <img src="assets/images/logo.png" alt="Company Logo">
+            <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" id="signupForm">
+                <div class="form-group">
+                    <label for="Username">Username</label>
+                    <input type="text" name="Username" id="Username" placeholder="Type your Username" required>
                 </div>
-            </div>
-            <!-- Display validation errors, if any -->
-            <?php if (!empty($errors)) { ?>
-                <div class="error">
-                    <?php foreach ($errors as $error) {
-                        echo $error . "<br>";
-                    } ?>
+                <div class="form-group">
+                    <label for="FirstName">First Name</label>
+                    <input type="text" name="FirstName" id="FirstName" placeholder="Type your First Name" required>
                 </div>
-            <?php } ?>
+                <div class="form-group">
+                    <label for="LastName">Last Name</label>
+                    <input type="text" name="LastName" id="LastName" placeholder="Type your Last Name" required>
+                </div>
+                <div class="form-group">
+                    <label for="Email">Email</label>
+                    <input type="email" name="Email" id="Email" placeholder="Type your Email" required>
+                </div>
+                <div class="form-group">
+                    <label for="Password">Password</label>
+                    <input type="password" name="Password" id="Password" placeholder="Type your Password" required>
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputConfirmPassword1">Confirm Password</label>
+                    <input type="password" name="confirmPassword" id="exampleInputConfirmPassword1" placeholder="Confirm your Password" required>
+                </div>
+                <div class="mb-4">
+                    <div class="form-check">
+                        <label class="form-check-label text-muted">
+                            <input type="checkbox" class="form-check-input"> I agree to all Terms & Conditions 
+                        </label>
+                    </div>
+                </div>
+                <!-- Display validation errors, if any -->
+                <?php if (!empty($errors)) { ?>
+                    <div class="error">
+                        <?php foreach ($errors as $error) {
+                            echo $error . "<br>";
+                        } ?>
+                    </div>
+                <?php } ?>
 
-            <div class="mt-3 d-grid gap-2">
-                <button class="btn btn-block btn-primary btn-lg fw-medium auth-form-btn" type="submit">SIGN UP</button>
-            </div>
-            <div class="text-center mt-4 fw-light">Already have an account? <a href="login.php" class="text-primary">Login</a></div>
-        </form>
+                <div class="mt-3 d-grid gap-2">
+                    <button class="btn" type="submit">SIGN UP</button>
+                </div>
+                <div class="text-center mt-4 fw-light">Already have an account? <a href="login.php" class="text-primary">Login</a></div>
+            </form>
+        </div>
     </div>
-    <!-- plugins:js -->
-    <script src="assets/vendors/js/vendor.bundle.base.js"></script>
-    <script src="assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
-    <!-- endinject -->
-    <!-- Plugin js for this page -->
-    <!-- End plugin js for this page -->
-    <!-- inject:js -->
-    <script src="assets/js/off-canvas.js"></script>
-    <script src="assets/js/template.js"></script>
-    <script src="assets/js/settings.js"></script>
-    <script src="assets/js/hoverable-collapse.js"></script>
-    <script src="assets/js/todolist.js"></script>
-    <!-- Password matching validation -->
     <script>
         document.getElementById("signupForm").addEventListener("submit", function(event) {
             var password = document.getElementById("Password").value;
@@ -243,6 +258,5 @@ mysqli_close($conn);
             }
         });
     </script>
-    <!-- endinject -->
 </body>
 </html>

@@ -83,5 +83,7 @@ INSERT INTO `ks_storage` (`id`, `id_user`, `st-code`, `st-name`, `st-type`, `st-
 (7, 0, '49-011', 'Power Supply Server', 'Black', 34, 'Rep', 'Disponible'),
 (8, 0, '49-009', 'Network Cables', 'Cables 20M', 3, 'IT Storage', 'Disponible'),
 (9, 0, '49-010', 'Power Supply Server', 'Grey', 40, 'IT Storage', 'Disponible');
+(10, 0, '49-0', 'Power Supply Server', 'Grey', 40, 'IT Storage', 'Disponible');
+
 
 COMMIT;

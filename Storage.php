@@ -127,7 +127,7 @@ ini_set('display_errors', 1);
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="storage.php">
+                    <a class="nav-link" href="Storage.php">
                         <i class="fas fa-database menu-icon"></i>
                         <span class="menu-title">Storage</span>
                     </a>
@@ -276,6 +276,20 @@ $(document).ready(function() {
         }
     });
 
+    // Function to reload the table data without refreshing the page
+    function loadTable() {
+        $.ajax({
+            url: 'load_table.php', // Create this PHP file to load the table data
+            type: 'GET',
+            success: function(data) {
+                $('#storageTable').DataTable().clear().rows.add($(data)).draw();
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading table data: ' + (xhr.responseText ? xhr.responseText : status));
+            }
+        });
+    }
+
     // Add button click
     $('#add-button').on('click', function() {
         var formContent = `
@@ -321,19 +335,9 @@ $(document).ready(function() {
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        // Display success message and append new row to the table
+                        // Display success message and reload table data
                         alert(response.message);
-                        var newRow = `
-                            <tr>
-                                <td>${$("#code").val()}</td>
-                                <td>${$("#name").val()}</td>
-                                <td>${$("#type").val()}</td>
-                                <td>${$("#qte").val()}</td>
-                                <td>${$("#aff").val()}</td>
-                                <td>${$("#status").val()}</td>
-                            </tr>
-                        `;
-                        $('#storageTable').DataTable().row.add($(newRow)).draw();
+                        loadTable(); // Reload the table data
                         document.getElementById('form-content').innerHTML = ''; // Clear the form
                     } else {
                         // Display error message within the form content
@@ -398,20 +402,6 @@ $(document).ready(function() {
         window.location.href = 'export_pdf.php';
     });
 
-    function loadTable() {
-        // Function to reload the table data without refreshing the page
-        $.ajax({
-            url: 'load_table.php', // Create this PHP file to load the table data
-            type: 'GET',
-            success: function(data) {
-                $('#storageTable').DataTable().clear().rows.add($(data)).draw();
-            },
-            error: function(xhr, status, error) {
-                console.error('Error loading table data: ' + (xhr.responseText ? xhr.responseText : status));
-            }
-        });
-    }
-
     // Bind event listeners using event delegation to ensure they remain after updates
     $('#storageTable').on('click', '.increment', function() {
         var row = $(this).closest('tr');
@@ -441,7 +431,7 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    location.reload(); // Reload the page after updating the affectation
+                    loadTable(); // Reload the table data
                 } else {
                     alert(response.error || 'An error occurred');
                 }
@@ -463,7 +453,7 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    location.reload(); // Reload the page after updating the quantity
+                    loadTable(); // Reload the table data
                 } else {
                     alert(response.error || 'An error occurred');
                 }

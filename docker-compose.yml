@@ -1,32 +1,42 @@
-version: '3.8'
+version: '3'
 
 services:
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: ks
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - inventory-network
+
   web:
     build: .
     ports:
-      - "80:80"
-    volumes:
-      - .:/var/www/html
+      - "8080:80"
     depends_on:
       - db
+    networks:
+      - inventory-network
 
-  db:
-    image: mysql:5.7
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
     environment:
-      MYSQL_ROOT_PASSWORD: example
-      MYSQL_DATABASE: exampledb
-    volumes:
-      - db_data:/var/lib/mysql
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: password
+    networks:
+      - inventory-network
 
-  test:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-    volumes:
-      - .:/app
-    depends_on:
-      - db
-    command: ["vendor/bin/phpunit", "--configuration", "phpunit.xml"]
+networks:
+  inventory-network:
+    driver: bridge
 
 volumes:
   db_data:

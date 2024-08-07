@@ -158,7 +158,7 @@ $stmt->close();
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="storage.php">
+                    <a class="nav-link" href="Storage.php">
                         <i class="fas fa-database menu-icon"></i>
                         <span class="menu-title">Storage</span>
                     </a>

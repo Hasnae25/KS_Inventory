@@ -16,7 +16,4 @@ if ($conn->connect_error) {
 if (!$conn->select_db($dbname)) {
     die("Database selection failed: " . $conn->error);
 }
-
-
- 
 ?>
