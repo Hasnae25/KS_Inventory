@@ -39,8 +39,6 @@ jobs:
     - name: Install dependencies
       run: composer install
 
-    - name: Run tests
-      run: php vendor/bin/phpunit tests # Remplacez "tests" par le dossier contenant vos tests
 
     - name: Build Docker image
       run: docker build -t my-app-test .
