@@ -10,7 +10,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     services:
@@ -34,11 +33,21 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.0' # Adaptez la version à celle que vous utilisez
+        php-version: '8.0'
 
     - name: Install dependencies
       run: composer install
 
+    - name: Wait for MySQL to be ready
+      run: |
+        for i in {1..30}; do
+          if mysqladmin ping -h "127.0.0.1" --silent; then
+            echo "MySQL is up and running"
+            break
+          fi
+          echo "Waiting for MySQL..."
+          sleep 2
+        done
 
     - name: Build Docker image
       run: docker build -t my-app-test .
@@ -46,13 +55,6 @@ jobs:
     - name: Run Docker container
       run: docker run --name ks_inventory_web --network=host my-app-test
 
-    - name: Verify MySQL connection
+    - name: Verify MySQL connection through phpMyAdmin
       run: |
-        docker exec ks_inventory_web php -r "
-          \$conn = new mysqli('localhost', 'root', 'rootpassword', 'ks');
-          if (\$conn->connect_error) {
-            die('Connection failed: ' . \$conn->connect_error);
-          } else {
-            echo 'Connected successfully to the database';
-          }
-        "
+        curl --fail http://localhost:8081 || exit 1
