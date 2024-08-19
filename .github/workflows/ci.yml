@@ -1,0 +1,60 @@
+name: CI for KS_Inventory
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: ks
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0' # Adaptez la version à celle que vous utilisez
+
+    - name: Install dependencies
+      run: composer install
+
+    - name: Run tests
+      run: php vendor/bin/phpunit tests # Remplacez "tests" par le dossier contenant vos tests
+
+    - name: Build Docker image
+      run: docker build -t my-app-test .
+
+    - name: Run Docker container
+      run: docker run --name ks_inventory_web --network=host my-app-test
+
+    - name: Verify MySQL connection
+      run: |
+        docker exec ks_inventory_web php -r "
+          \$conn = new mysqli('localhost', 'root', 'rootpassword', 'ks');
+          if (\$conn->connect_error) {
+            die('Connection failed: ' . \$conn->connect_error);
+          } else {
+            echo 'Connected successfully to the database';
+          }
+        "
