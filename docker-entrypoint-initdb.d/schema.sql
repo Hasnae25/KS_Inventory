@@ -79,11 +79,10 @@ INSERT INTO `ks_storage` (`id`, `id_user`, `st-code`, `st-name`, `st-type`, `st-
 (3, 0, '49-006', 'HDMI Cables', 'HDMI 10M', 43, 'IT Storage', 'Disponible'),
 (4, 0, '49-007', 'HDMI Cables', 'HDMI 20M', 9, 'Rep', 'Disponible'),
 (5, 0, '49-008', 'Network Cables', 'Cables 2M', 33, 'IT Storage', 'Disponible'),
-(6, 0, '49-012', 'Terminal', 'Fujitsi', 33, 'IT Storage', 'Disponible'),
+(6, 0, '49-012', 'Terminal', 'Fujitsu', 33, 'IT Storage', 'Disponible'),
 (7, 0, '49-011', 'Power Supply Server', 'Black', 34, 'Rep', 'Disponible'),
 (8, 0, '49-009', 'Network Cables', 'Cables 20M', 3, 'IT Storage', 'Disponible'),
 (9, 0, '49-010', 'Power Supply Server', 'Grey', 40, 'IT Storage', 'Disponible');
-(10, 0, '49-0', 'Power Supply Server', 'Grey', 40, 'IT Storage', 'Disponible');
 
 
 COMMIT;

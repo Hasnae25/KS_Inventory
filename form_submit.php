@@ -59,81 +59,82 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" || isset($_GET['action'])) {
                 $response['message'] = "All fields are required!";
             }
         } elseif ($action == 'delete') {
-            if (empty($code) || empty($reason) || empty($quantity)) {
-                $response['message'] = 'Please fill in all fields';
+    if (empty($code) || empty($reason) || empty($quantity)) {
+        $response['message'] = 'Please fill in all fields';
+        echo json_encode($response);
+        exit();
+    }
+
+    $stmt = $conn->prepare("SELECT `st-code`, `st-qte` FROM ks_storage WHERE `st-code` = ?");
+    if ($stmt === false) {
+        $response['message'] = "Error preparing the select statement: " . $conn->error;
+        echo json_encode($response);
+        exit();
+    }
+    $stmt->bind_param("s", $code);
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+        $stmt->bind_result($st_code, $qtee); // Bind to $st_code (full equipment code)
+        $stmt->fetch();
+        $stmt->close();
+
+        if ($qtee >= $quantity) {
+            $user_id = $_SESSION['ID'];
+            $scrapStmt = $conn->prepare("INSERT INTO ks_scrap (id_eq, id_user, sc_qte, reason, eq_code) VALUES (?, ?, ?, ?, ?)");
+            if ($scrapStmt === false) {
+                $response['message'] = "Error preparing the insert statement: " . $conn->error;
                 echo json_encode($response);
                 exit();
             }
+            $scrapStmt->bind_param("iiiss", $st_code, $user_id, $quantity, $reason, $st_code); // Insert full code
+            if ($scrapStmt->execute()) {
+                $scrapStmt->close();
 
-            $stmt = $conn->prepare("SELECT `st-code`, `st-qte` FROM ks_storage WHERE `st-code` = ?");
-            if ($stmt === false) {
-                $response['message'] = "Error preparing the select statement: " . $conn->error;
-                echo json_encode($response);
-                exit();
-            }
-            $stmt->bind_param("s", $code);
-            $stmt->execute();
-            $stmt->store_result();
-
-            if ($stmt->num_rows > 0) {
-                $stmt->bind_result($id_eq, $qtee);
-                $stmt->fetch();
-                $stmt->close();
-
-                if ($qtee >= $quantity) {
-                    $user_id = $_SESSION['ID'];
-                    $scrapStmt = $conn->prepare("INSERT INTO ks_scrap (id_eq, id_user, sc_qte, reason) VALUES (?, ?, ?, ?)");
-                    if ($scrapStmt === false) {
-                        $response['message'] = "Error preparing the insert statement: " . $conn->error;
+                $new_quantity = $qtee - $quantity;
+                if ($new_quantity > 0) {
+                    $updateStmt = $conn->prepare("UPDATE ks_storage SET `st-qte` = ? WHERE `st-code` = ?");
+                    if ($updateStmt === false) {
+                        $response['message'] = "Error preparing the update statement: " . $conn->error;
                         echo json_encode($response);
                         exit();
                     }
-                    $scrapStmt->bind_param("iiis", $id_eq, $user_id, $quantity, $reason);
-                    if ($scrapStmt->execute()) {
-                        $scrapStmt->close();
-
-                        $new_quantity = $qtee - $quantity;
-                        if ($new_quantity > 0) {
-                            $updateStmt = $conn->prepare("UPDATE ks_storage SET `st-qte` = ? WHERE `st-code` = ?");
-                            if ($updateStmt === false) {
-                                $response['message'] = "Error preparing the update statement: " . $conn->error;
-                                echo json_encode($response);
-                                exit();
-                            }
-                            $updateStmt->bind_param("is", $new_quantity, $code);
-                            if ($updateStmt->execute()) {
-                                $response['success'] = true;
-                                $response['message'] = 'Equipment quantity updated successfully';
-                            } else {
-                                $response['message'] = 'Error executing the update statement: ' . $updateStmt->error;
-                            }
-                            $updateStmt->close();
-                        } else {
-                            $deleteStmt = $conn->prepare("DELETE FROM ks_storage WHERE `st-code` = ?");
-                            if ($deleteStmt === false) {
-                                $response['message'] = "Error preparing the delete statement: " . $conn->error;
-                                echo json_encode($response);
-                                exit();
-                            }
-                            $deleteStmt->bind_param("s", $code);
-                            if ($deleteStmt->execute()) {
-                                $response['success'] = true;
-                                $response['message'] = 'Equipment deleted successfully';
-                            } else {
-                                $response['message'] = 'Error executing the delete statement: ' . $deleteStmt->error;
-                            }
-                            $deleteStmt->close();
-                        }
+                    $updateStmt->bind_param("is", $new_quantity, $st_code);
+                    if ($updateStmt->execute()) {
+                        $response['success'] = true;
+                        $response['message'] = 'Equipment quantity updated successfully';
                     } else {
-                        $response['message'] = 'Error executing the insert statement: ' . $scrapStmt->error;
+                        $response['message'] = 'Error executing the update statement: ' . $updateStmt->error;
                     }
+                    $updateStmt->close();
                 } else {
-                    $response['message'] = 'Not enough quantity to delete';
+                    $deleteStmt = $conn->prepare("DELETE FROM ks_storage WHERE `st-code` = ?");
+                    if ($deleteStmt === false) {
+                        $response['message'] = "Error preparing the delete statement: " . $conn->error;
+                        echo json_encode($response);
+                        exit();
+                    }
+                    $deleteStmt->bind_param("s", $st_code);
+                    if ($deleteStmt->execute()) {
+                        $response['success'] = true;
+                        $response['message'] = 'Equipment deleted successfully';
+                    } else {
+                        $response['message'] = 'Error executing the delete statement: ' . $deleteStmt->error;
+                    }
+                    $deleteStmt->close();
                 }
             } else {
-                $response['message'] = 'Equipment not found';
+                $response['message'] = 'Error executing the insert statement: ' . $scrapStmt->error;
             }
+        } else {
+            $response['message'] = 'Not enough quantity to delete';
         }
+    } else {
+        $response['message'] = 'Equipment not found';
+    }
+}
+
     } catch (Exception $e) {
         $response['message'] = 'Exception: ' . $e->getMessage();
     }

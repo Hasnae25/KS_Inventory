@@ -202,7 +202,8 @@ echo nl2br($debug_output);
 </head>
 <body>
     <div class="container">
-        <div class="welcome"> 
+        <div class="welcome">
+ 
             <h2>Welcome to Kromberg&Schubert</h2>
         </div>
         <div class="login">
@@ -218,8 +219,8 @@ echo nl2br($debug_output);
                 </div>
                 <button type="submit" class="btn">Sign In</button>
                 <div class="links">
-                    <a href="forgot_password.php">Forgot password?</a>
                     <a href="register.php">Sign Up</a>
+                    
                 </div>
             </form>
         </div>
