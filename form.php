@@ -76,10 +76,6 @@ if ($action == 'update' && isset($_GET['code'])) {
                         <label for="aff">Affectation</label>
                         <input type="text" class="form-control" id="aff" name="aff" required>
                     </div>
-                    <div class="form-group">
-                        <label for="status">Status</label>
-                        <input type="text" class="form-control" id="status" name="status" required>
-                    </div>
                     <button type="submit" class="btn btn-outline-primary btn-fw">Add Equipment</button>
                 </form>
             <?php elseif ($action == 'update' && isset($code)): ?>

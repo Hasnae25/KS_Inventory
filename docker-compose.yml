@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   web:
@@ -6,7 +6,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - .:/var/www/html
+      - ./KS_Inventory:/var/www/html
     networks:
       - app-network
 
@@ -15,7 +15,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: db
+      MYSQL_DATABASE: ks
       MYSQL_USER: root
       MYSQL_PASSWORD: password
     networks:
@@ -30,7 +30,17 @@ services:
       PMA_HOST: db
       MYSQL_ROOT_PASSWORD: rootpassword
     networks:
+      - app-network  
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app
+    networks:
       - app-network
+    command: ./vendor/bin/phpunit
 
 networks:
   app-network:

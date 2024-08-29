@@ -23,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" || isset($_GET['action'])) {
 
     try {
         if ($action == 'add') {
-            if (!empty($code) && !empty($name) && !empty($type) && !empty($qte) && !empty($aff) && !empty($status)) {
+            if (!empty($code) && !empty($name) && !empty($type) && !empty($qte) && !empty($aff)) {
                 $checkStmt = $conn->prepare("SELECT COUNT(`st-code`) FROM ks_storage WHERE `st-code` = ?");
                 if ($checkStmt === false) {
                     $response['message'] = "Error preparing the statement: " . $conn->error;
@@ -39,14 +39,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" || isset($_GET['action'])) {
                 if ($count > 0) {
                     $response['message'] = "Error: Equipment code already exists!";
                 } else {
-                    $stmt = $conn->prepare("INSERT INTO ks_storage (`st-code`, `st-name`, `st-type`, `st-qte`, `st-affectation`, `st-status`, `id_user`) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                    $stmt = $conn->prepare("INSERT INTO ks_storage (`st-code`, `st-name`, `st-type`, `st-qte`, `st-affectation`, `id_user`) VALUES (?, ?, ?, ?, ?, ?)");
                     if ($stmt === false) {
                         $response['message'] = "Error preparing the insert statement: " . $conn->error;
                         echo json_encode($response);
                         exit();
                     }
                     $id_user = $_SESSION['ID']; // Use the ID of the logged-in user
-                    $stmt->bind_param("ssssssi", $code, $name, $type, $qte, $aff, $status, $id_user);
+                    $stmt->bind_param("sssssi", $code, $name, $type, $qte, $aff, $id_user);
                     if ($stmt->execute()) {
                         $response['success'] = true;
                         $response['message'] = "Equipment added successfully.";
@@ -94,7 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" || isset($_GET['action'])) {
 
                 $new_quantity = $qtee - $quantity;
                 if ($new_quantity > 0) {
-                    $updateStmt = $conn->prepare("UPDATE ks_storage SET `st-qte` = ? WHERE `st-code` = ?");
+                    $updateStmt = $conn->prepare("UPDATE ks_storage SET `eq_code` = ? WHERE `st-code` = ?");
                     if ($updateStmt === false) {
                         $response['message'] = "Error preparing the update statement: " . $conn->error;
                         echo json_encode($response);

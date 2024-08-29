@@ -11,7 +11,8 @@ $message = isset($_SESSION['message']) ? $_SESSION['message'] : '';
 unset($_SESSION['message']); // Clear the session message after retrieving it
 
 // Fetch scrap equipment data
-$sql = "SELECT `id_scr`, `id_eq`, `reason`, `sc_qte` FROM `ks_scrap`";
+$sql = "SELECT `id_scr`, `id_eq`, `reason`, `sc_qte`, `eq_code` FROM `ks_scrap`";
+
 $result = $conn->query($sql);
 $scrapData = [];
 if ($result && $result->num_rows > 0) {
@@ -165,7 +166,7 @@ $conn->close();
                                 <tbody>
                                     <?php foreach ($scrapData as $equipment): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($equipment['id_eq']); ?></td>
+                                        <td><?php echo htmlspecialchars($equipment['eq_code']); ?></td>
                                         <td><?php echo htmlspecialchars($equipment['reason']); ?></td>
                                         <td><?php echo htmlspecialchars($equipment['sc_qte']); ?></td>
                                         <td><a href='delete_equipment.php?id=<?php echo $equipment['id_scr']; ?>' class='btn btn-danger btn-sm'><i class='fa fa-trash'></i></a></td>

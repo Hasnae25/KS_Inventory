@@ -1,51 +1,50 @@
 <?php
-// login.php
-if (headers_sent($file, $line)) {
-  die("Headers already sent in $file on line $line");
-}
-session_start();
+ob_start(); // Démarre le tampon de sortie
+session_start([
+    'cookie_lifetime' => 86400, // Durée de vie des cookies de session (1 jour)
+    'cookie_secure' => true,    // Assure que les cookies ne sont envoyés que via HTTPS
+    'cookie_httponly' => true,  // Empêche JavaScript d'accéder aux cookies de session
+]);
 
 include('database.php');
 
-// Enable error reporting for debugging
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// Désactiver l'affichage des erreurs en production
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
 $debug_output = "";
 
+function redirect($url) {
+    if (!headers_sent()) {
+        header("Location: $url");
+        exit();
+    } else {
+        error_log("Headers already sent. Cannot redirect to $url.");
+    }
+}
+
+ob_end_flush(); // Envoie la sortie tamponnée
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  
-    // Check if username and password are set
     if (isset($_POST['Username']) && isset($_POST['Password'])) {
         $username = $_POST['Username'];
         $password = $_POST['Password'];
 
-        // Debugging output
-        $debug_output .= "Username and password are set. Username: $username\n";
-
-        // Prepare and bind
         $stmt = $conn->prepare("SELECT ID, Password, FirstName, LastName, Email, roles_id FROM ks_user WHERE Username = ?");
         if ($stmt === false) {
-            $debug_output .= "Error preparing the statement: " . $conn->error . "\n";
-            die("Error preparing the statement: " . $conn->error);
+            error_log("Error preparing the statement: " . $conn->error);
+            die("Error preparing the statement.");
         }
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $stmt->store_result();
 
-        // Debugging output
-        $debug_output .= "Executed the statement. Number of rows: " . $stmt->num_rows . "\n";
-
         if ($stmt->num_rows > 0) {
             $stmt->bind_result($id, $stored_password, $first_name, $last_name, $email, $roles_id);
             $stmt->fetch();
 
-            // Debugging output
-            $debug_output .= "Fetched Password: " . htmlspecialchars($stored_password) . "\n";
-
-            // Plaintext password comparison
-            if ($password === $stored_password) {
+            if (password_verify($password, $stored_password)) {
                 $_SESSION['ID'] = $id;
                 $_SESSION['Username'] = $username;
                 $_SESSION['FirstName'] = $first_name;
@@ -55,38 +54,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 $stmt->close();
                 $conn->close();
+
                 if ($roles_id == 1) {
-                  // Redirect to admin dashboard
-                  header('Location: index.php');
-                  exit();
-              } else {
-                  // Redirect to user dashboard
-                  header('Location: indexuser.php');
-                  exit();
-              }
+                    redirect('index.php');
+                } else {
+                    redirect('indexuser.php');
+                }
             } else {
                 $stmt->close();
                 $conn->close();
-                $debug_output .= "Invalid username or password - password mismatch\n";
+                error_log("Invalid username or password - password mismatch");
                 echo "Invalid username or password.";
             }
         } else {
             $stmt->close();
             $conn->close();
-            $debug_output .= "Invalid username or password - no such user\n";
+            error_log("Invalid username or password - no such user");
             echo "Invalid username or password.";
         }
     } else {
-        $debug_output .= "Username and password are required.\n";
+        error_log("Username and password are required.");
         echo "Username and password are required.";
     }
-} 
-
-
-echo nl2br($debug_output);
-
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
