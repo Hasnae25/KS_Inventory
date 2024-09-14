@@ -14,7 +14,7 @@ if (isset($_SESSION['message'])) {
 }
 
 // Check if the user is an admin
-if ($_SESSION['roles_id'] != 1) {
+if ($_SESSION['roles_id'] != 3) {
     header('Location: indexuser.php');
     exit();
 }

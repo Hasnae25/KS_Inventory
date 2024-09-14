@@ -17,6 +17,7 @@ $username = "root";
 $password = "rootpassword"; // Make sure this matches the password set in docker-compose.yml
 $dbname = "ks";
 
+
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 if ($conn->connect_error) {
@@ -37,16 +38,6 @@ if ($result && $result->num_rows > 0) {
     }
 } else {
     echo "Error fetching equipment data: " . $conn->error;
-}
-// Fetch equipment with quantity under 10
-$sql = "SELECT `st-code`, `st-type`, `st-qte` FROM `ks_storage` WHERE `st-qte` < 10";
-$result = $conn->query($sql);
-
-$lowStockData = [];
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $lowStockData[] = $row;
-    }
 }
 
 // Fetch sum of equipment types by affectation for IT Storage, rep, and Rep only
@@ -198,14 +189,12 @@ $conn->close();
                         <span class="menu-title">Low Stock Alert</span>
                     </a>
                 </li>
-                <?php if ($roles_id == 3): // Display for Super Admin only ?>
-        <li class="nav-item">
-            <a class="nav-link" href="admin.php">
-                <i class="fas fa-users menu-icon"></i>
-                <span class="menu-title">Manage Users</span>
-            </a>
-        </li>
-        <?php endif; ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="admin.php">
+                        <i class="fas fa-users menu-icon"></i>
+                        <span class="menu-title">Manage Users</span>
+                    </a>
+                </li>
             </ul>
         </nav>
         <div class="main-panel">

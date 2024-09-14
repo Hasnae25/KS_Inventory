@@ -1,11 +1,26 @@
 <?php
-session_start();
+ob_start();
+session_start(); // Ensure session is started
+
+// Check if the user is logged in
 if (!isset($_SESSION['ID'])) {
     header("Location: login.php");
     exit();
 }
 
+// Retrieve roles_id from session if available
+if (isset($_SESSION['roles_id'])) {
+    $roles_id = $_SESSION['roles_id']; // Assign the role ID from the session
+} else {
+    // Handle the case if roles_id is not set (optional, you can redirect or show an error)
+    $roles_id = null;
+}
+
 include('database.php');
+// Affichage des erreurs pour le débogage (désactiver en production)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 $message = isset($_SESSION['message']) ? $_SESSION['message'] : '';
 unset($_SESSION['message']); // Clear the session message after retrieving it
@@ -13,6 +28,8 @@ unset($_SESSION['message']); // Clear the session message after retrieving it
 // Error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ob_end_flush(); 
+
 ?>
 
 <!DOCTYPE html>
@@ -144,12 +161,14 @@ ini_set('display_errors', 1);
                         <span class="menu-title">Low Stock Alert</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="admin.php">
-                        <i class="fas fa-users menu-icon"></i>
-                        <span class="menu-title">Manage Users</span>
-                    </a>
-                </li>
+                <?php if ($roles_id == 3): // Display for Super Admin only ?>
+        <li class="nav-item">
+            <a class="nav-link" href="admin.php">
+                <i class="fas fa-users menu-icon"></i>
+                <span class="menu-title">Manage Users</span>
+            </a>
+        </li>
+        <?php endif; ?>
             </ul>
         </nav>
         <div class="main-panel">
@@ -178,12 +197,13 @@ ini_set('display_errors', 1);
                                             <th>Quantity</th>
                                             <th>Affectation</th>
                                             <th>Status</th>
+                            
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php
                                         $tableName = 'ks_storage';
-                                        $sql = sprintf("SELECT `st-code` AS code, `st-name` AS name, `st-type` AS type, `st-qte` AS quantity, `st-affectation` AS affectation, `st-status` AS status FROM `%s`", $tableName);
+                                        $sql = "SELECT `st-code` AS code, `st-name` AS name, `st-type` AS type, `st-qte` AS quantity, `st-affectation` AS affectation, `st-status` AS status, `date_entree` FROM ks_storage";
                                         $result = $conn->query($sql);
 
                                         if ($result === false) {
@@ -288,7 +308,37 @@ $(document).ready(function() {
                 console.error('Error loading table data: ' + (xhr.responseText ? xhr.responseText : status));
             }
         });
-    }
+    }// Event listener for change-affectation button
+    $('#storageTable').on('click', '.change-affectation', function() {
+        var currentAffectation = $(this).closest('td').text().trim(); // Get the current affectation from the table cell
+        var code = $(this).data('code');  // Get the equipment code
+
+        // Determine the new affectation based on the current one
+        var newAffectation = (currentAffectation === 'Rep') ? 'IT Storage' : 'Rep';
+
+        // AJAX request to update the affectation
+        $.ajax({
+            url: 'update_affectation.php',  // The PHP file handling the update
+            type: 'POST',
+            data: {
+                code: code,
+                affectation: newAffectation
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    alert('Affectation updated to ' + newAffectation + ' successfully!');
+                    loadTable();  // Reload the table to reflect changes
+                } else {
+                    alert('Error updating affectation: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('An error occurred while processing your request: ' + xhr.responseText);
+            }
+        });
+    });
+
 
     // Add button click
     $('#add-button').on('click', function() {
@@ -399,44 +449,42 @@ $(document).ready(function() {
     });
 
     // Bind event listeners using event delegation to ensure they remain after updates
+    $(document).ready(function() {
+    // Gestion des boutons d'incrémentation et de décrémentation
     $('#storageTable').on('click', '.increment', function() {
-        var row = $(this).closest('tr');
         var code = $(this).data('code');
-        updateQuantity(code, 1, row); // Increment quantity by 1
+        updateQuantity(code, 1); // Incrémenter de 1
     });
 
     $('#storageTable').on('click', '.decrement', function() {
-        var row = $(this).closest('tr');
         var code = $(this).data('code');
-        updateQuantity(code, -1, row); // Decrement quantity by 1
+        updateQuantity(code, -1); // Décrémenter de 1
     });
 
-    $('#storageTable').on('click', '.change-affectation', function() {
-        var row = $(this).closest('tr');
-        var code = $(this).data('code');
-        var currentAffectation = row.find('.affectation').text().trim();
-        var newAffectation = (currentAffectation === 'IT Storage') ? 'Rep' : 'IT Storage';
-
+    // Fonction pour mettre à jour la quantité
+    function updateQuantity(code, change) {
         $.ajax({
-            url: 'update_affectation.php',
+            url: 'update_quantity.php',
             type: 'POST',
             data: {
                 code: code,
-                affectation: newAffectation
+                change: change
             },
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    loadTable(); // Reload the table data
+                    alert(response.message);  // Afficher seulement le message
+                    loadTable(); // Recharger le tableau après la mise à jour
                 } else {
-                    alert(response.error || 'An error occurred');
+                    alert('Error: ' + response.message);  // Afficher seulement le message d'erreur
                 }
             },
             error: function(xhr, status, error) {
-                alert('An error occurred while processing your request: ' + xhr.responseText);
+                alert('An error occurred while processing your request: ' + xhr.responseText); // Afficher les détails de l'erreur en cas de problème
             }
         });
-    });
+    }
+});
 
     function updateQuantity(code, change, row) {
         $.ajax({
@@ -460,6 +508,37 @@ $(document).ready(function() {
         });
     }
 });
+// Event listener for change-affectation button
+$('#storageTable').on('click', '.change-affectation', function() {
+    var currentAffectation = $(this).closest('td').text().trim(); // Get the current affectation from the table cell
+    var code = $(this).data('code');  // Get the equipment code
+
+    // Determine the new affectation based on the current one
+    var newAffectation = (currentAffectation === 'Rep') ? 'IT Storage' : 'Rep';
+
+    // AJAX request to update the affectation
+    $.ajax({
+        url: 'update_affectation.php',  // The PHP file handling the update
+        type: 'POST',
+        data: {
+            code: code,
+            affectation: newAffectation
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                alert('Affectation updated to ' + newAffectation + ' successfully!');
+                loadTable();  // Reload the table to reflect changes
+            } else {
+                alert('Error updating affectation: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            alert('An error occurred while processing your request: ' + xhr.responseText);
+        }
+    });
+});
+
 
 </script>
 

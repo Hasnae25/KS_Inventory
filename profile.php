@@ -1,5 +1,5 @@
 <?php
-session_start();
+session_start(); 
 if (!isset($_SESSION['ID'])) {
     header("Location: login.php");
     exit();
@@ -11,12 +11,15 @@ $last_name = $_SESSION['LastName'];
 $email = $_SESSION['Email'];
 $roles_id = $_SESSION['roles_id'];
 
+// Retrieve the roles_id from the session
+$roles_id = isset($_SESSION['roles_id']) ? $_SESSION['roles_id'] : null; // Ensure it's set, or set to null if not available
+
 include('database.php');
 
 $userID = $_SESSION['ID'];
 
-// Préparer et exécuter la requête pour récupérer les informations utilisateur
-$stmt = $conn->prepare("SELECT FirstName, LastName, Username, Email, roles_id  FROM ks_user WHERE ID = ?");
+// Prepare and execute the query to get user information
+$stmt = $conn->prepare("SELECT FirstName, LastName, Username, Email, roles_id FROM ks_user WHERE ID = ?");
 $stmt->bind_param("i", $userID);
 $stmt->execute();
 $stmt->bind_result($firstName, $lastName, $Username,  $email, $roles_id);
@@ -58,6 +61,10 @@ $stmt->close();
         .navbar .nav-link {
             color: #ffffff;
         }
+        .sidebar {
+            background-color: #f8f9fa;
+            border-right: 1px solid #e3e6f0;
+        }
         .sidebar .nav-item .nav-link {
             color: #212529;
         }
@@ -65,19 +72,12 @@ $stmt->close();
             background-color: #007bff;
             color: #ffffff;
         }
-        .table-responsive {
-            margin-top: 20px;
-        }
-        .alert-message {
-            margin-top: 20px;
+        .sidebar .nav-item .nav-link:hover {
+            background-color: #343a40;
+            color: #ffffff;
         }
         .content-wrapper {
             padding: 20px;
-        }
-        .footer {
-            background-color: #343a40;
-            color: #ffffff;
-            padding: 10px 0;
         }
         .profile-card {
             background-color: #ffffff;
@@ -100,25 +100,36 @@ $stmt->close();
             border: none;
             padding-left: 0;
         }
-        .badge-opacity-warning {
-            background-color: #ffc107;
-            color: #212529;
-        }
         .badge-opacity-success {
             background-color: #28a745;
             color: #ffffff;
         }
-        .btn-custom {
-            background-color: #17a2b8;
+        .footer {
+            background-color: #343a40;
             color: #ffffff;
+            padding: 10px 0;
         }
-        .btn-custom:hover {
-            background-color: #138496;
-            color: #ffffff;
+        .nav-item .nav-link {
+            font-size: 1rem;
+            padding: 10px 15px;
         }
-        .nav-item .nav-link:hover {
-            background-color: #6c757d;
-            color: #ffffff;
+        /* Updated table styling */
+        table.profile-table {
+            width: 100%;
+            margin-top: 20px;
+            background-color: #fff;
+            border-collapse: collapse;
+            border: 1px solid #dee2e6;
+        }
+        table.profile-table th, table.profile-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        table.profile-table th {
+            background-color: #f8f9fa;
+            color: #333;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -157,30 +168,34 @@ $stmt->close();
                         <span class="menu-title">Dashboard</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="Storage.php">
-                        <i class="fas fa-database menu-icon"></i>
-                        <span class="menu-title">Storage</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="Scrap.php">
-                        <i class="fas fa-trash menu-icon"></i>
-                        <span class="menu-title">Scrap</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="alert.php">
-                        <i class="fas fa-exclamation-triangle menu-icon"></i>
-                        <span class="menu-title">Low Stock Alert</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="admin.php">
-                        <i class="fas fa-users menu-icon"></i>
-                        <span class="menu-title">Manage Users</span>
-                    </a>
-                </li>
+                <?php if ($_SESSION['roles_id'] == 1 || $_SESSION['roles_id'] == 3): // Admins and Super Admins can see this ?>
+        <li class="nav-item">
+            <a class="nav-link" href="Storage.php">
+                <i class="fas fa-database menu-icon"></i>
+                <span class="menu-title">Storage</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="Scrap.php">
+                <i class="fas fa-trash menu-icon"></i>
+                <span class="menu-title">Scrap</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="alert.php">
+                <i class="fas fa-exclamation-triangle menu-icon"></i>
+                <span class="menu-title">Low Stock Alert</span>
+            </a>
+        </li>
+        <?php endif; ?>
+                <?php if ($roles_id == 3): // Display for Super Admin only ?>
+        <li class="nav-item">
+            <a class="nav-link" href="admin.php">
+                <i class="fas fa-users menu-icon"></i>
+                <span class="menu-title">Manage Users</span>
+            </a>
+        </li>
+        <?php endif; ?>
             </ul>
         </nav>
         <!-- partial -->
@@ -189,43 +204,38 @@ $stmt->close();
             <div class="col-12 grid-margin">
               <div class="card profile-card">
                 <div class="card-body">
-                  <h4 class="card-title">Profile</h4>
-                  <form class="form-sample profile-info">
-                    <div class="row">
-                      <div class="col-md-6">
-                        <div class="form-group">
-                          <label class="badge badge-opacity-success">First Name</label>
-                          <input type="text" class="form-control-plaintext" value="<?php echo htmlspecialchars($firstName); ?>" readonly>
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <div class="form-group">
-                          <label class="badge badge-opacity-success">Last Name</label>
-                          <input type="text" class="form-control-plaintext" value="<?php echo htmlspecialchars($lastName); ?>" readonly>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-6">
-                        <div class="form-group">
-                          <label class="badge badge-opacity-success">Username</label>
-                          <input type="text" class="form-control-plaintext" value="<?php echo htmlspecialchars($Username); ?>" readonly>
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <div class="form-group">
-                          <label class="badge badge-opacity-success">Email</label>
-                          <input type="text" class="form-control-plaintext" value="<?php echo htmlspecialchars($email); ?>" readonly>
-                        </div>
-                      </div>
-                    </div>
-                  </form>
+                  <h4 class="card-title">Profile Information</h4>
+                  <table class="profile-table">
+                    <thead>
+                      <tr>
+                        <th>Field</th>
+                        <th>Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>First Name</td>
+                        <td><?php echo htmlspecialchars($firstName); ?></td>
+                      </tr>
+                      <tr>
+                        <td>Last Name</td>
+                        <td><?php echo htmlspecialchars($lastName); ?></td>
+                      </tr>
+                      <tr>
+                        <td>Username</td>
+                        <td><?php echo htmlspecialchars($Username); ?></td>
+                      </tr>
+                      <tr>
+                        <td>Email</td>
+                        <td><?php echo htmlspecialchars($email); ?></td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
           <!-- content-wrapper ends -->
-          <!-- partial:../../partials/_footer.html -->
           <footer class="footer">
             <div class="d-sm-flex justify-content-center justify-content-sm-between">
               <span class="text-muted text-center text-sm-left d-block d-sm-inline-block"><a href="https://www.bootstrapdash.com/" target="_blank"></a></span>
@@ -238,12 +248,6 @@ $stmt->close();
       </div>
       <!-- page-body-wrapper ends -->
     </div>
-    <!-- container-scroller -->
-    <!-- plugins:js -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-    <!-- endinject -->
-    <!-- Custom js for this page-->
-    <!-- End custom js for this page-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

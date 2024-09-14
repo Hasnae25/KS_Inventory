@@ -1,6 +1,8 @@
 <?php
-require 'vendor/autoload.php'; // Utiliser l'autoloader de Composer
+// Démarrer la mise en tampon de sortie pour éviter l'envoi de contenu avant les en-têtes
+ob_start();
 
+require 'vendor/autoload.php'; // Utiliser l'autoloader de Composer
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -34,13 +36,15 @@ if ($result->num_rows > 0) {
     }
 }
 
-// Définir l'en-tête HTTP pour le téléchargement
+// Définir les en-têtes HTTP pour le téléchargement
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment;filename="inventory.xlsx"');
+header('Content-Disposition: attachment; filename="inventory.xlsx"');
 header('Cache-Control: max-age=0');
 
-// Écrire le fichier et le sortir au navigateur
+// Écrire le fichier et l'envoyer au navigateur
 $writer = new Xlsx($spreadsheet);
 $writer->save('php://output');
+
+// Terminer la mise en tampon de sortie
+ob_end_flush();
 exit;
-?>

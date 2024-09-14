@@ -1,4 +1,5 @@
 <?php
+ob_start();
 session_start();
 if (!isset($_SESSION['ID'])) {
     header("Location: login.php");
@@ -28,6 +29,7 @@ if (isset($_GET['id'])) {
 }
 
 // Redirect back to scrap page
-header("Location: scrap.php");
+header("Location: Scrap.php");
 exit();
+ob_end_flush();
 ?>

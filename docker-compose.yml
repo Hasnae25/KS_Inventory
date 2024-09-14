@@ -1,12 +1,11 @@
-
-
+version: '3'
 services:
   web:
     build: .
     ports:
       - "8080:80"
     volumes:
-      - ./KS_Inventory:/var/www/html
+      - .:/var/www/html
     networks:
       - app-network
 
@@ -14,10 +13,12 @@ services:
     image: mysql:5.7
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: ks
-      MYSQL_USER: root
-      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: rootpassword # Mot de passe root
+      MYSQL_DATABASE: ks                # Base de données initiale
+      MYSQL_USER: ks_user               # Utilisateur régulier
+      MYSQL_PASSWORD: ks_password       # Mot de passe de l'utilisateur régulier
+    ports:
+      - "3307:3306"
     networks:
       - app-network
 
@@ -30,17 +31,7 @@ services:
       PMA_HOST: db
       MYSQL_ROOT_PASSWORD: rootpassword
     networks:
-      - app-network  
-
-  test:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-    volumes:
-      - .:/app
-    networks:
       - app-network
-    command: ./vendor/bin/phpunit
 
 networks:
   app-network:

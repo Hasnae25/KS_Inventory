@@ -1,17 +1,26 @@
 <?php
+ob_start();
 session_start();
 if (!isset($_SESSION['ID'])) {
     header("Location: login.php");
     exit();
 }
 
+// Retrieve the roles_id from the session
+$roles_id = isset($_SESSION['roles_id']) ? $_SESSION['roles_id'] : null;
+
 include('database.php');
+
+// Affichage des erreurs pour le débogage (désactiver en production)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 $message = isset($_SESSION['message']) ? $_SESSION['message'] : '';
 unset($_SESSION['message']); // Clear the session message after retrieving it
 
-// Fetch scrap equipment data
-$sql = "SELECT `id_scr`, `id_eq`, `reason`, `sc_qte`, `eq_code` FROM `ks_scrap`";
+// Fetch scrap equipment data, including the deletion date
+$sql = "SELECT `id_scr`, `id_eq`, `reason`, `sc_qte`, `eq_code`, `date_deleted` FROM `ks_scrap`";
 
 $result = $conn->query($sql);
 $scrapData = [];
@@ -24,8 +33,9 @@ if ($result && $result->num_rows > 0) {
 }
 
 $conn->close();
-?>
 
+ob_end_flush();  // Vide le tampon de sortie et l'envoie au navigateur
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -140,14 +150,19 @@ $conn->close();
                         <span class="menu-title">Low Stock Alert</span>
                     </a>
                 </li>
+                <?php if ($roles_id == 3): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="admin.php">
                         <i class="fas fa-users menu-icon"></i>
                         <span class="menu-title">Manage Users</span>
                     </a>
                 </li>
+                <?php endif; ?>
             </ul>
-        </nav>  <div class="main-panel">
+        </nav>
+
+        <!-- Main Panel -->
+        <div class="main-panel">
             <div class="content-wrapper">
                 <div class="col-16 grid-margin">
                     <div class="card-body">
@@ -160,15 +175,17 @@ $conn->close();
                                         <th>Equipment Code</th>
                                         <th>Reason</th>
                                         <th>Quantity</th>
+                                        <th>Date Deleted</th> <!-- Added Date Deleted Column -->
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($scrapData as $equipment): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($equipment['eq_code']); ?></td>
-                                        <td><?php echo htmlspecialchars($equipment['reason']); ?></td>
-                                        <td><?php echo htmlspecialchars($equipment['sc_qte']); ?></td>
+                                        <td><?php echo htmlspecialchars($equipment['eq_code'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($equipment['reason'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($equipment['sc_qte'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($equipment['date_deleted'] ?? ''); ?></td> <!-- Display date_deleted -->
                                         <td><a href='delete_equipment.php?id=<?php echo $equipment['id_scr']; ?>' class='btn btn-danger btn-sm'><i class='fa fa-trash'></i></a></td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -194,23 +211,9 @@ $conn->close();
     </div>
     <!-- page-body-wrapper ends -->
 </div>
-<!-- container-scroller -->
 
-<!-- plugins:js -->
-<script src="assets/vendors/js/vendor.bundle.base.js"></script>
-<script src="assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
-<!-- inject:js -->
-<script src="assets/js/off-canvas.js"></script>
-<script src="assets/js/template.js"></script>
-<script src="assets/js/settings.js"></script>
-<script src="assets/js/hoverable-collapse.js"></script>
-<script src="assets/js/todolist.js"></script>
-<!-- jQuery and jQuery UI -->
-<script src="assets/jquery/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
-<script src="assets/jquery/jquery-ui.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-<!-- DataTables JS -->
+<!-- jQuery and DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
 <script>
@@ -220,14 +223,7 @@ $(document).ready(function() {
         "searching": true,
         "info": false,
         "lengthChange": false,
-        "pageLength": 10,
-        "language": {
-            "paginate": {
-                "previous": "<",
-                "next": ">"
-            },
-            "search": "Search:"
-        }
+        "pageLength": 10
     });
 });
 </script>

@@ -8,8 +8,14 @@ if (!isset($_SESSION['ID'])) {
 // Database connection
 $servername = "db";
 $username = "root";
-$password = "password";
+$password = "rootpassword";
 $dbname = "ks";
+
+// Retrieve the roles_id from the session
+$roles_id = isset($_SESSION['roles_id']) ? $_SESSION['roles_id'] : null; // Ensure it's set, or set to null if not available
+
+
+
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -26,8 +32,6 @@ if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $alertData[] = $row;
     }
-} else {
-    $alertData = [];
 }
 
 $conn->close();
@@ -146,14 +150,17 @@ $conn->close();
                         <span class="menu-title">Low Stock Alert</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="admin.php">
-                        <i class="fas fa-users menu-icon"></i>
-                        <span class="menu-title">Manage Users</span>
-                    </a>
-                </li>
+                <?php if ($roles_id == 3): // Display for Super Admin only ?>
+        <li class="nav-item">
+            <a class="nav-link" href="admin.php">
+                <i class="fas fa-users menu-icon"></i>
+                <span class="menu-title">Manage Users</span>
+            </a>
+        </li>
+        <?php endif; ?>
             </ul>
         </nav>
+         <!-- partial -->
         <div class="main-panel">
             <div class="content-wrapper">
                 <div class="row">

@@ -12,9 +12,9 @@ $email = htmlspecialchars($_SESSION['Email']);
 $roles_id = $_SESSION['roles_id'];
 
 // Database connection
-$servername = "db";
+$servername = "db"; // Change this from 'localhost' to 'db'
 $username = "root";
-$password = "password";
+$password = "rootpassword"; // Make sure this matches the password set in docker-compose.yml
 $dbname = "ks";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -22,6 +22,7 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
+
 
 // Fetch equipment data from the database
 $sql = "SELECT `st-code`, `st-qte` FROM `ks_storage`";
@@ -70,8 +71,6 @@ if ($scrapResult && $scrapResult->num_rows > 0) {
 
 $conn->close();
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>

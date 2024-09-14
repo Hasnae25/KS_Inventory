@@ -1,13 +1,11 @@
-# Utiliser une image de base
-FROM php:8.0-apache
+FROM php:7.4-apache
 
-# Copier le code source de l'application dans le conteneur
+# Installer les extensions PHP nécessaires
+RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
+
+# Copier les fichiers de l'application
 COPY . /var/www/html/
 
-# Installer les dépendances  nécessaire
-RUN docker-php-ext-install mysqli pdo pdo_mysql
-
-# Configurer les droits d'accès
-RUN chown -R www-data:www-data /var/www/html/
-
+# Configurer les droits pour les fichiers copiés (facultatif, ajustez selon vos besoins)
+RUN chown -R www-data:www-data /var/www/html
 
