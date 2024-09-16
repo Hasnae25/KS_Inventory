@@ -1,0 +1,38 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    networks:
+      - app-network
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword # Mot de passe root
+      MYSQL_DATABASE: ks                # Base de données initiale
+      MYSQL_USER: ks_user               # Utilisateur régulier
+      MYSQL_PASSWORD: ks_password       # Mot de passe de l'utilisateur régulier
+    ports:
+      - "3307:3306"
+    networks:
+      - app-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: rootpassword
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
