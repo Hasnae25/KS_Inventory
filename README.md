@@ -11,7 +11,9 @@ Avant de démarrer, assurez-vous d'avoir installé les éléments suivants sur v
 Clonez ce dépôt GitHub sur votre machine locale :
 
 bash
+
 git clone https://github.com/Hasnae25/KS_Inventory.git
+
 cd KS_Inventory
 
 2. Charger l'image Docker
@@ -19,6 +21,7 @@ cd KS_Inventory
 Si vous avez téléchargé une image Docker de l'application, chargez-la avec la commande suivante :
 
 bash
+
 docker load -i ks_inventory_image.tar
 
 3. Lancer l'application avec Docker Compose
@@ -26,6 +29,7 @@ docker load -i ks_inventory_image.tar
 Dans le répertoire racine du projet (là où se trouve le fichier docker-compose.yml), exécutez la commande suivante pour démarrer l'application :
 
 bash
+
 docker-compose up
 
 Cela démarrera les services suivants :
